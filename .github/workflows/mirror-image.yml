@@ -1,0 +1,17 @@
+name: Mirror snowluma image
+on:
+  workflow_dispatch:
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Login GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Pull from Docker Hub
+        run: docker pull motricseven7/snowluma:v1.12.7
+      - name: Tag for GHCR
+        run: docker tag motricseven7/snowluma:v1.12.7 ghcr.io/nyanyaman/snowluma:v1.12.7
+      - name: Push to GHCR
+        run: docker push ghcr.io/nyanyaman/snowluma:v1.12.7
