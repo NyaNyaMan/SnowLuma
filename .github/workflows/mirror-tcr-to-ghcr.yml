@@ -1,0 +1,19 @@
+name: Mirror TCR to GHCR
+on:
+  workflow_dispatch:
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Login TCR
+        run: echo "${{ secrets.TCR_PASS }}" | docker login ccr.ccs.tencentyun.com -u "${{ secrets.TCR_USER }}" --password-stdin
+      - name: Login GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Pull from TCR
+        run: docker pull ccr.ccs.tencentyun.com/nyanya/snowluma:latest
+      - name: Tag for GHCR
+        run: docker tag ccr.ccs.tencentyun.com/nyanya/snowluma:latest ghcr.io/nyanyaman/snowluma:latest
+      - name: Push to GHCR
+        run: docker push ghcr.io/nyanyaman/snowluma:latest
