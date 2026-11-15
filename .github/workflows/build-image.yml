@@ -1,0 +1,42 @@
+name: Build image
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: 'pnpm'
+      - name: Install and build
+        run: |
+          pnpm install --frozen-lockfile
+          SNOWLUMA_TARGET=linux-x64 pnpm run build:all
+          pnpm check:release-layout
+      - name: Pack tarball
+        run: |
+          chmod +x dist/launcher.sh
+          tar -czf SnowLuma.Framework.tar.gz -C dist .
+      - name: Prepare build context
+        run: |
+          mkdir -p build-ctx
+          mv SnowLuma.Framework.tar.gz build-ctx/
+          curl -fsSL -o build-ctx/Dockerfile https://cdn.jsdelivr.net/gh/airline233/SnowLuma.Docker.Framework@main/Dockerfile
+          curl -fsSL -o build-ctx/start.sh https://cdn.jsdelivr.net/gh/airline233/SnowLuma.Docker.Framework@main/start.sh
+          curl -fsSL -o build-ctx/supervisord.conf https://cdn.jsdelivr.net/gh/airline233/SnowLuma.Docker.Framework@main/supervisord.conf
+          ls -lh build-ctx/
+      - name: Build
+        run: |
+          docker build -t ghcr.io/nyanyaman/snowluma:2.4.2 build-ctx/
+      - name: Push to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/nyanyaman/snowluma:2.4.2
