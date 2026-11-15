@@ -42,3 +42,8 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker push ghcr.io/nyanyaman/snowluma:2.4.2
+      - name: Push to TCR
+        run: |
+          echo "${{ secrets.TCR_PASS }}" | docker login ccr.ccs.tencentyun.com -u "${{ secrets.TCR_USER }}" --password-stdin
+          docker tag ghcr.io/nyanyaman/snowluma:2.4.2 ccr.ccs.tencentyun.com/nyanya/snowluma:2.4.2
+          docker push ccr.ccs.tencentyun.com/nyanya/snowluma:2.4.2
