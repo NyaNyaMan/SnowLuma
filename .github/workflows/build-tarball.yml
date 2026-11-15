@@ -21,6 +21,16 @@ jobs:
         run: pnpm run build:all
       - name: Verify layout
         run: pnpm check:release-layout
+      - name: Inspect dist layout
+        run: |
+          echo "=== dist 根目录 ==="
+          ls -la dist | head -20
+          echo "=== native 目录 ==="
+          ls -la dist/native 2>/dev/null || echo "(没有 native 目录!)"
+          echo "=== 关键文件检查 ==="
+          for f in dist/index.mjs dist/launcher.sh dist/native/snowluma-linux-x64.node dist/native/snowluma-linux-x64.so dist/native/websocket-linux-x64.node; do
+            if [ -f "$f" ]; then echo "OK  $f ($(stat -c%s "$f") 字节)"; else echo "缺失  $f"; fi
+          done
       - name: Package
         run: |
           chmod +x dist/launcher.sh
